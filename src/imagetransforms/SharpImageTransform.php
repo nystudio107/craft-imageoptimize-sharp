@@ -37,15 +37,13 @@ class SharpImageTransform extends ImageTransform
         'jpg' => 'jpeg',
     ];
 
-    const TRANSFORM_FORMAT_ATTRIBUTES_MAP = [
-        'quality' => 'quality',
-        'interlace' => 'progressive',
-    ];
-
     const TRANSFORM_RESIZE_ATTRIBUTES_MAP = [
         'width'   => 'width',
         'height'  => 'height',
+        'mode' => 'fit',
     ];
+
+    const SHARPEN_RADIUS = 2;
 
     // Static Methods
     // =========================================================================
@@ -110,18 +108,22 @@ class SharpImageTransform extends ImageTransform
             }
             $format = $transform->format;
             $format = self::TRANSFORM_FORMATS[$format] ?? $format;
-            // Map the transform format properties
-            foreach (self::TRANSFORM_FORMAT_ATTRIBUTES_MAP as $key => $value) {
-                if (!empty($transform[$key])) {
-                    $edits[$format][$value] = $transform[$key];
-                }
+            // param: quality
+            if (!empty($transform->quality)) {
+                $edits[$format]['quality'] = (int)$transform->quality;
             }
-            // Map the transform edits properties
+            // param: progressive
+            if (!empty($transform->interlace)) {
+                $edits[$format]['progressive'] = (bool)($transform->interlace !== 'none');
+            }
+            // Map the transform resize properties
             foreach (self::TRANSFORM_RESIZE_ATTRIBUTES_MAP as $key => $value) {
                 if (!empty($transform[$key])) {
                     $edits['resize'][$value] = $transform[$key];
                 }
             }
+            $edits['resize']['fit'] = 'cover';
+
             // Handle auto-sharpening
             if ($settings->autoSharpenScaledImages) {
                 // See if the image has been scaled >= 50%
@@ -129,8 +131,9 @@ class SharpImageTransform extends ImageTransform
                 $heightScale = $asset->getHeight() / ($transform->height ?? $asset->getHeight());
                 if (($widthScale >= 2.0) || ($heightScale >= 2.0)) {
                     $edits['sharpen'] = [
-                        'flat' => 1.0,
-                        'jagged' => 2.0,
+                        'sigma' => 1 + self::SHARPEN_RADIUS / 2,
+                        'flat' => 0.4,
+                        'jagged' => 0.8,
                     ];
                 }
             }
@@ -140,10 +143,16 @@ class SharpImageTransform extends ImageTransform
             $config['edits'] = $edits;
         }
         // Encode the $config and create the $url
-        $strConfig = Json::encode($config);
-        $url = rtrim($baseUrl, '/').'/'.$strConfig;
+        $strConfig = Json::encode(
+            $config,
+            JSON_FORCE_OBJECT
+            | JSON_UNESCAPED_SLASHES
+            | JSON_UNESCAPED_UNICODE
+            | JSON_NUMERIC_CHECK
+        );
+        $url = rtrim($baseUrl, '/').'/'.base64_encode($strConfig);
         Craft::debug(
-            'Sharp transform created for: '.$assetUri.' - Config: '.print_r($config, true).' - URL: '.$url,
+            'Sharp transform created for: '.$assetUri.' - Config: '.print_r($strConfig, true).' - URL: '.$url,
             __METHOD__
         );
 

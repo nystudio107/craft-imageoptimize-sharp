@@ -6,7 +6,7 @@
     <!-- baseUrl -->
     {{ forms.autosuggestField({
         label: 'Base URL',
-        instructions: "The base URL to use for the Sharp transforms. If this is an AWS "|t('image-optimize'),
+        instructions: "The base URL to use for the Sharp transform service. If Sharp is being used via [AWS Serverless Image Handler](https://aws.amazon.com/solutions/serverless-image-handler/), this is your 'Image handler distribution' CloudFront distribution URL."|t('image-optimize'),
         suggestEnvVars: true,
         id: 'baseUrl',
         name: 'baseUrl',
@@ -17,7 +17,7 @@
     <!-- baseUrl -->
     {{ forms.textField({
         label: 'Base URL',
-        instructions: "The base URL to use for the Sharp transforms."|t('image-optimize'),
+        instructions: "The base URL to use for the Sharp transform service. If Sharp is being used via [AWS Serverless Image Handler](https://aws.amazon.com/solutions/serverless-image-handler/), this is your 'Image handler distribution' CloudFront distribution URL."|t('image-optimize'),
         id: 'baseUrl',
         name: 'baseUrl',
         value: imageTransform.baseUrl,
