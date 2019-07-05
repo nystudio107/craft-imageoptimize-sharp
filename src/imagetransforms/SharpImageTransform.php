@@ -140,10 +140,38 @@ class SharpImageTransform extends ImageTransform
                     $edits['resize'][$value] = $transform[$key];
                 }
             }
+            // Handle the focal point
+            $position = $transform->position;
+            $focalPoint = $asset->getFocalPoint();
+            if (!empty($focalPoint)) {
+                if ($focalPoint['x'] < 0.33) {
+                    $xPos = 'left';
+                } elseif ($focalPoint['x'] < 0.66) {
+                    $xPos = 'center';
+                } else {
+                    $xPos = 'right';
+                }
+                if ($focalPoint['y'] < 0.33) {
+                    $yPos = 'top';
+                } elseif ($focalPoint['y'] < 0.66) {
+                    $yPos = 'center';
+                } else {
+                    $yPos = 'bottom';
+                }
+                $position = $yPos.'-'.$xPos;
+            }
+            if (!empty($position)) {
+                if (preg_match('/(top|center|bottom)-(left|center|right)/', $position)) {
+                    $positions = explode('-', $position);
+                    $positions = array_diff($positions, ['center']);
+                    if (!empty($positions) && $transform->position !== 'center-center') {
+                        $edits['resize']['position'] = implode(',', $positions);
+                    }
+                }
+            }
             // Map the mode param
             $mode = $edits['resize']['fit'];
             $edits['resize']['fit'] = self::TRANSFORM_MODES[$mode] ?? $mode ?? 'cover';
-
             // Handle auto-sharpening
             if ($settings->autoSharpenScaledImages) {
                 // See if the image has been scaled >= 50%
