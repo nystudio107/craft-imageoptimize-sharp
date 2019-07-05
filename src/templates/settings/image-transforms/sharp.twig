@@ -1,0 +1,28 @@
+{% from 'image-optimize/_includes/macros' import configWarning %}
+
+{% import "_includes/forms" as forms %}
+
+{% if craft.imageOptimize.craft31 %}
+    <!-- baseUrl -->
+    {{ forms.autosuggestField({
+        label: 'Base URL',
+        instructions: "The base URL to use for the Sharp transform service. If Sharp is being used via [AWS Serverless Image Handler](https://aws.amazon.com/solutions/serverless-image-handler/), this is your 'Image handler distribution' CloudFront distribution URL."|t('image-optimize'),
+        suggestEnvVars: true,
+        id: 'baseUrl',
+        name: 'baseUrl',
+        value: imageTransform.baseUrl,
+        warning: configWarning('imageTransformTypeSettings', 'image-optimize'),
+    }) }}
+{% else %}
+    <!-- baseUrl -->
+    {{ forms.textField({
+        label: 'Base URL',
+        instructions: "The base URL to use for the Sharp transform service. If Sharp is being used via [AWS Serverless Image Handler](https://aws.amazon.com/solutions/serverless-image-handler/), this is your 'Image handler distribution' CloudFront distribution URL."|t('image-optimize'),
+        id: 'baseUrl',
+        name: 'baseUrl',
+        value: imageTransform.baseUrl,
+        warning: configWarning('imageTransformTypeSettings', 'image-optimize'),
+    }) }}
+{% endif %}
+{% if awsS3Installed %}
+{% endif %}
