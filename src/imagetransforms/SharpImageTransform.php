@@ -37,13 +37,17 @@ class SharpImageTransform extends ImageTransform
         'jpg' => 'jpeg',
     ];
 
+    const TRANSFORM_MODES = [
+        'fit' => 'contain',
+        'crop' => 'cover',
+        'stretch' => 'fill',
+    ];
+
     const TRANSFORM_RESIZE_ATTRIBUTES_MAP = [
         'width'   => 'width',
         'height'  => 'height',
         'mode' => 'fit',
     ];
-
-    const SHARPEN_RADIUS = 2;
 
     // Static Methods
     // =========================================================================
@@ -109,12 +113,26 @@ class SharpImageTransform extends ImageTransform
             $format = $transform->format;
             $format = self::TRANSFORM_FORMATS[$format] ?? $format;
             // param: quality
-            if (!empty($transform->quality)) {
-                $edits[$format]['quality'] = (int)$transform->quality;
-            }
-            // param: progressive
-            if (!empty($transform->interlace)) {
-                $edits[$format]['progressive'] = (bool)($transform->interlace !== 'none');
+            $edits[$format]['quality'] = (int)($transform->quality ?? 100);
+            // Format-specific settings
+            switch ($format) {
+                case 'jpeg':
+                    // param: progressive
+                    if (!empty($transform->interlace)) {
+                        $edits[$format]['progressive'] = $transform->interlace !== 'none';
+                    }
+                    $edits[$format]['trellisQuantisation'] = true;
+                    $edits[$format]['overshootDeringing'] = true;
+                    $edits[$format]['optimizeScans'] = true;
+                    break;
+                case 'png':
+                    // param: progressive
+                    if (!empty($transform->interlace)) {
+                        $edits[$format]['progressive'] = $transform->interlace !== 'none';
+                    }
+                    break;
+                case 'webp':
+                    break;
             }
             // Map the transform resize properties
             foreach (self::TRANSFORM_RESIZE_ATTRIBUTES_MAP as $key => $value) {
@@ -122,7 +140,9 @@ class SharpImageTransform extends ImageTransform
                     $edits['resize'][$value] = $transform[$key];
                 }
             }
-            $edits['resize']['fit'] = 'cover';
+            // Map the mode param
+            $mode = $edits['resize']['fit'];
+            $edits['resize']['fit'] = self::TRANSFORM_MODES[$mode] ?? $mode ?? 'cover';
 
             // Handle auto-sharpening
             if ($settings->autoSharpenScaledImages) {
@@ -130,11 +150,7 @@ class SharpImageTransform extends ImageTransform
                 $widthScale = $asset->getWidth() / ($transform->width ?? $asset->getWidth());
                 $heightScale = $asset->getHeight() / ($transform->height ?? $asset->getHeight());
                 if (($widthScale >= 2.0) || ($heightScale >= 2.0)) {
-                    $edits['sharpen'] = [
-                        'sigma' => 1 + self::SHARPEN_RADIUS / 2,
-                        'flat' => 0.4,
-                        'jagged' => 0.8,
-                    ];
+                    $edits['sharpen'] = true;
                 }
             }
         }
