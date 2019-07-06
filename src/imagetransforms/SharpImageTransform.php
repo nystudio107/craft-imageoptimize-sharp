@@ -92,7 +92,11 @@ class SharpImageTransform extends ImageTransform
         // Get the bucket name if it exists
         $assetVolume = $asset->getVolume();
         if ($assetVolume instanceof AwsVolume) {
-            $config['bucket'] = $assetVolume->bucket;
+            $bucket = $assetVolume->bucket;
+            if (ImageOptimize::$craft31) {
+                $bucket = Craft::parseEnv($bucket);
+            }
+            $config['bucket'] = $bucket;
         }
         // Set the key
         $assetUri = $this->getAssetUri($asset);
