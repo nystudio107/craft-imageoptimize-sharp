@@ -168,7 +168,7 @@ class SharpImageTransform extends ImageTransform
                 if (preg_match('/(top|center|bottom)-(left|center|right)/', $position)) {
                     $positions = explode('-', $position);
                     $positions = array_diff($positions, ['center']);
-                    if (!empty($positions) && $transform->position !== 'center-center') {
+                    if (!empty($positions) && $position !== 'center-center') {
                         $edits['resize']['position'] = implode(',', $positions);
                     }
                 }
