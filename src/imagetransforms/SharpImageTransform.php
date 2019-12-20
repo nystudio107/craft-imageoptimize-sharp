@@ -114,7 +114,7 @@ class SharpImageTransform extends ImageTransform
                     $transform->format = 'jpeg';
                 }
             }
-            $format = $transform->format;
+            $format = strtolower($transform->format);
             $format = self::TRANSFORM_FORMATS[$format] ?? $format;
             // param: quality
             $edits[$format]['quality'] = (int)($transform->quality ?? 100);
