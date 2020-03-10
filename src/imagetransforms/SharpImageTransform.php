@@ -162,14 +162,14 @@ class SharpImageTransform extends ImageTransform
                 } else {
                     $yPos = 'bottom';
                 }
-                $position = $yPos.'-'.$xPos;
+                $position = $xPos.'-'.$yPos;
             }
             if (!empty($position)) {
                 if (preg_match('/(top|center|bottom)-(left|center|right)/', $position)) {
                     $positions = explode('-', $position);
                     $positions = array_diff($positions, ['center']);
                     if (!empty($positions) && $position !== 'center-center') {
-                        $edits['resize']['position'] = implode(',', $positions);
+                        $edits['resize']['position'] = implode(' ', $positions);
                     }
                 }
             }
