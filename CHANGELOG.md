@@ -1,5 +1,9 @@
 # ImageOptimize Sharp Image Transform Changelog
 
+## 1.0.3 - 2020.03.10
+### Changed
+* Fixed the mapping of focal points to textual positions
+
 ## 1.0.2 - 2019.08.13
 ### Changed
 * Ensure that focal points take precedence over transform positions
