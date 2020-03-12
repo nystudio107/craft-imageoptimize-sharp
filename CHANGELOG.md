@@ -1,5 +1,9 @@
 # ImageOptimize Sharp Image Transform Changelog
 
+## 1.0.4 - 2020.03.12
+### Fixed
+* Fix the preg_match for the x- and y positions
+
 ## 1.0.3 - 2020.03.10
 ### Changed
 * Fixed the mapping of focal points to textual positions

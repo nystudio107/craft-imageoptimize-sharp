@@ -165,7 +165,7 @@ class SharpImageTransform extends ImageTransform
                 $position = $xPos.'-'.$yPos;
             }
             if (!empty($position)) {
-                if (preg_match('/(top|center|bottom)-(left|center|right)/', $position)) {
+                if (preg_match('/(left|center|right)-(top|center|bottom)/', $position)) {
                     $positions = explode('-', $position);
                     $positions = array_diff($positions, ['center']);
                     if (!empty($positions) && $position !== 'center-center') {
