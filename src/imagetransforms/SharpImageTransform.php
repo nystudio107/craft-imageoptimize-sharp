@@ -118,6 +118,10 @@ class SharpImageTransform extends ImageTransform
             $format = self::TRANSFORM_FORMATS[$format] ?? $format;
             // param: quality
             $edits[$format]['quality'] = (int)($transform->quality ?? 100);
+            // If the quality is empty, don't pass the param down to Serverless Sharp
+            if (empty($edits[$format]['quality'])) {
+                unset($edits[$format]['quality']);
+            }
             // Format-specific settings
             switch ($format) {
                 case 'jpeg':
