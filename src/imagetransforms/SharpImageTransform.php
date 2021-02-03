@@ -38,7 +38,7 @@ class SharpImageTransform extends ImageTransform
     ];
 
     const TRANSFORM_MODES = [
-        'fit' => 'contain',
+        'fit' => 'inside',
         'crop' => 'cover',
         'stretch' => 'fill',
     ];
