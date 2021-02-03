@@ -2,7 +2,7 @@
     "name": "nystudio107/craft-imageoptimize-sharp",
     "description": "Provides an Sharp image transform type for the ImageOptimize plugin.",
     "type": "image-transform",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "keywords": [
         "craftcms",
         "sharp",

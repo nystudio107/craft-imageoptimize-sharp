@@ -1,5 +1,9 @@
 # ImageOptimize Sharp Image Transform Changelog
 
+## 1.0.6 - 2021.02.03
+### Fixed
+* Map the `fit` Craft transform method to `inside` to avoid letterboxing
+
 ## 1.0.5 - 2020.06.08
 ### Fixed
 * If the quality is empty, don't pass the param down to Serverless Sharp
