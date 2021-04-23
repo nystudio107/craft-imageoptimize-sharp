@@ -1,5 +1,9 @@
 # ImageOptimize Sharp Image Transform Changelog
 
+## 1.0.7 - UNRELEASED
+### Added
+* Added a setting to control the amount an image needs to be scaled down for automatic sharpening to be applied (https://github.com/nystudio107/craft-imageoptimize/issues/263)
+
 ## 1.0.6 - 2021.02.03
 ### Fixed
 * Map the `fit` Craft transform method to `inside` to avoid letterboxing
