@@ -1,5 +1,9 @@
 # ImageOptimize Sharp Image Transform Changelog
 
+## 1.0.8 - 2021.11.12
+### Fixed
+* Fixed an issue where transforms could fail if the file extension was lowercase ([#4](https://github.com/nystudio107/craft-imageoptimize-sharp/issues/4))
+
 ## 1.0.7 - 2021.04.23
 ### Added
 * Added a setting to control the amount an image needs to be scaled down for automatic sharpening to be applied (https://github.com/nystudio107/craft-imageoptimize/issues/263)
