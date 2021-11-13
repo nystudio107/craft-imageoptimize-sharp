@@ -2,7 +2,7 @@
 
 ## 1.0.8 - 2021.11.12
 ### Fixed
-* Fixed an issue where transforms could fail if the file extension was lowercase ([#4](https://github.com/nystudio107/craft-imageoptimize-sharp/issues/4))
+* Fixed an issue where transforms could fail if the file extension was not lowercase ([#4](https://github.com/nystudio107/craft-imageoptimize-sharp/issues/4))
 
 ## 1.0.7 - 2021.04.23
 ### Added
