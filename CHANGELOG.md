@@ -1,5 +1,11 @@
 # ImageOptimize Sharp Image Transform Changelog
 
+## 1.0.9 - 2022.02.24
+
+### Changed
+
+* Loosen the `composer.json` `require` constraints
+
 ## 1.0.8 - 2021.11.12
 ### Fixed
 * Fixed an issue where transforms could fail if the file extension was not lowercase ([#4](https://github.com/nystudio107/craft-imageoptimize-sharp/issues/4))
