@@ -10,18 +10,17 @@
 
 namespace nystudio107\imageoptimizesharp\imagetransforms;
 
-use craft\errors\AssetLogicException;
+use Craft;
+use craft\awss3\Fs as AwsFs;
+use craft\elements\Asset;
+use craft\helpers\App;
+use craft\helpers\Image;
+use craft\helpers\Json;
+use craft\models\ImageTransform as CraftImageTransformModel;
 use nystudio107\imageoptimize\ImageOptimize;
 use nystudio107\imageoptimize\imagetransforms\ImageTransform;
-
-use Craft;
-use craft\elements\Asset;
-use craft\models\AssetTransform;
-use craft\helpers\Json;
-
-use craft\awss3\Volume as AwsVolume;
-
 use yii\base\InvalidConfigException;
+use function class_exists;
 
 /**
  * @author    nystudio107
@@ -33,23 +32,30 @@ class SharpImageTransform extends ImageTransform
     // Constants
     // =========================================================================
 
-    const TRANSFORM_FORMATS = [
+    protected const TRANSFORM_FORMATS = [
         'jpg' => 'jpeg',
     ];
 
-    const TRANSFORM_MODES = [
+    protected const TRANSFORM_MODES = [
         'fit' => 'inside',
         'crop' => 'cover',
         'stretch' => 'fill',
     ];
 
-    const TRANSFORM_RESIZE_ATTRIBUTES_MAP = [
-        'width'   => 'width',
-        'height'  => 'height',
+    protected const TRANSFORM_RESIZE_ATTRIBUTES_MAP = [
+        'width' => 'width',
+        'height' => 'height',
         'mode' => 'fit',
     ];
 
     // Static Methods
+    // =========================================================================
+    /**
+     * @var string
+     */
+    public string $baseUrl;
+
+    // Public Properties
     // =========================================================================
 
     /**
@@ -60,64 +66,49 @@ class SharpImageTransform extends ImageTransform
         return Craft::t('image-optimize', 'Sharp');
     }
 
-    // Public Properties
-    // =========================================================================
-
-    /**
-     * @var string
-     */
-    public $baseUrl;
-
     // Public Methods
     // =========================================================================
 
     /**
-     * @param Asset               $asset
-     * @param AssetTransform|null $transform
-     *
-     * @return string|null
-     * @throws \yii\base\InvalidConfigException
+     * @inheritdoc
      */
-    public function getTransformUrl(Asset $asset, $transform)
+    public function getTransformUrl(Asset $asset, CraftImageTransformModel|string|array|null $transform): ?string
     {
-        $url = null;
         $config = [];
         $settings = ImageOptimize::$plugin->getSettings();
-
         // Get the instance settings
         $baseUrl = $this->baseUrl ?? '';
-        if (ImageOptimize::$craft31) {
-            $baseUrl = Craft::parseEnv($baseUrl);
-        }
+        $baseUrl = App::parseEnv($baseUrl);
         // Get the bucket name if it exists
-        $assetVolume = $asset->getVolume();
-        if ($assetVolume instanceof AwsVolume) {
-            $bucket = $assetVolume->bucket;
-            if (ImageOptimize::$craft31) {
-                $bucket = Craft::parseEnv($bucket);
-            }
+        try {
+            $assetVolumeFs = $asset->getVolume()->getFs();
+        } catch (InvalidConfigException $e) {
+            Craft::error($e->getMessage(), __METHOD__);
+            $assetVolumeFs = null;
+        }
+        if ($assetVolumeFs instanceof AwsFs) {
+            $bucket = $assetVolumeFs->bucket;
+            $bucket = App::parseEnv($bucket);
             $config['bucket'] = $bucket;
         }
         // Set the key
         $assetUri = $this->getAssetUri($asset);
         $config['key'] = ltrim($assetUri, '/');
-
-        $assetTransformss = Craft::$app->getAssetTransforms();
         // Apply any settings from the transform
         $edits = [];
         if ($transform !== null) {
             // Figure out the format of the transform
             if (empty($transform->format)) {
-                try {
-                    $transform->format = $assetTransformss->detectAutoTransformFormat($asset);
-                } catch (AssetLogicException $e) {
+                if (in_array(mb_strtolower($asset->getExtension()), Image::webSafeFormats(), true)) {
+                    $transform->format = $asset->getExtension();
+                } else {
                     $transform->format = 'jpeg';
                 }
             }
             $format = strtolower($transform->format);
             $format = self::TRANSFORM_FORMATS[$format] ?? $format;
             // param: quality
-            $edits[$format]['quality'] = (int)($transform->quality ?? 100);
+            $edits[$format]['quality'] = ($transform->quality ?? 100);
             // If the quality is empty, don't pass the param down to Serverless Sharp
             if (empty($edits[$format]['quality'])) {
                 unset($edits[$format]['quality']);
@@ -166,15 +157,13 @@ class SharpImageTransform extends ImageTransform
                 } else {
                     $yPos = 'bottom';
                 }
-                $position = $xPos.'-'.$yPos;
+                $position = $xPos . '-' . $yPos;
             }
-            if (!empty($position)) {
-                if (preg_match('/(left|center|right)-(top|center|bottom)/', $position)) {
-                    $positions = explode('-', $position);
-                    $positions = array_diff($positions, ['center']);
-                    if (!empty($positions) && $position !== 'center-center') {
-                        $edits['resize']['position'] = implode(' ', $positions);
-                    }
+            if (!empty($position) && preg_match('/(left|center|right)-(top|center|bottom)/', $position)) {
+                $positions = explode('-', $position);
+                $positions = array_diff($positions, ['center']);
+                if (!empty($positions) && $position !== 'center-center') {
+                    $edits['resize']['position'] = implode(' ', $positions);
                 }
             }
             // Map the mode param
@@ -184,8 +173,8 @@ class SharpImageTransform extends ImageTransform
             if ($settings->autoSharpenScaledImages) {
                 // See if the image has been scaled >= 50%
                 $widthScale = (int)((($transform->width ?? $asset->getWidth()) / $asset->getWidth()) * 100);
-                $heightScale =  (int)((($transform->height ?? $asset->getHeight()) / $asset->getHeight()) * 100);
-                if (($widthScale >= (int)$settings->sharpenScaledImagePercentage) || ($heightScale >= (int)$settings->sharpenScaledImagePercentage)) {
+                $heightScale = (int)((($transform->height ?? $asset->getHeight()) / $asset->getHeight()) * 100);
+                if (($widthScale >= $settings->sharpenScaledImagePercentage) || ($heightScale >= $settings->sharpenScaledImagePercentage)) {
                     $edits['sharpen'] = true;
                 }
             }
@@ -202,9 +191,9 @@ class SharpImageTransform extends ImageTransform
             | JSON_UNESCAPED_UNICODE
             | JSON_NUMERIC_CHECK
         );
-        $url = rtrim($baseUrl, '/').'/'.base64_encode($strConfig);
+        $url = rtrim($baseUrl, '/') . '/' . base64_encode($strConfig);
         Craft::debug(
-            'Sharp transform created for: '.$assetUri.' - Config: '.print_r($strConfig, true).' - URL: '.$url,
+            'Sharp transform created for: ' . $assetUri . ' - Config: ' . print_r($strConfig, true) . ' - URL: ' . $url,
             __METHOD__
         );
 
@@ -212,41 +201,29 @@ class SharpImageTransform extends ImageTransform
     }
 
     /**
-     * @param string              $url
-     * @param Asset               $asset
-     * @param AssetTransform|null $transform
-     *
-     * @return string
+     * @inheritdoc
      */
-    public function getWebPUrl(string $url, Asset $asset, $transform): string
+    public function getWebPUrl(string $url, Asset $asset, CraftImageTransformModel|string|array|null $transform): ?string
     {
         if ($transform === null) {
-            $transform = new AssetTransform();
+            $transform = new CraftImageTransformModel();
         }
-        $transform->format='webp';
-        try {
-            $webpUrl = $this->getTransformUrl($asset, $transform);
-        } catch (InvalidConfigException $e) {
-            $webpUrl = null;
-        }
+        $transform->format = 'webp';
+        $webpUrl = $this->getTransformUrl($asset, $transform);
 
         return $webpUrl ?? $url;
     }
 
     /**
-     * @param Asset $asset
-     *
-     * @return null|string
+     * @inheritdoc
      */
-    public function getPurgeUrl(Asset $asset)
+    public function getPurgeUrl(Asset $asset): ?string
     {
         return null;
     }
 
     /**
-     * @param string $url
-     *
-     * @return bool
+     * @inheritdoc
      */
     public function purgeUrl(string $url): bool
     {
@@ -254,12 +231,9 @@ class SharpImageTransform extends ImageTransform
     }
 
     /**
-     * @param Asset $asset
-     *
-     * @return mixed
-     * @throws \yii\base\InvalidConfigException
+     * @inheritdoc
      */
-    public function getAssetUri(Asset $asset)
+    public function getAssetUri(Asset $asset): ?string
     {
         return parent::getAssetUri($asset);
     }
@@ -267,25 +241,24 @@ class SharpImageTransform extends ImageTransform
     /**
      * @inheritdoc
      */
-    public function getSettingsHtml()
+    public function getSettingsHtml(): ?string
     {
         return Craft::$app->getView()->renderTemplate('sharp-image-transform/settings/image-transforms/sharp.twig', [
             'imageTransform' => $this,
-            'awsS3Installed'    => \class_exists(AwsVolume::class),
+            'awsS3Installed' => class_exists(AwsFs::class),
         ]);
     }
 
     /**
      * @inheritdoc
      */
-    public function rules()
+    public function rules(): array
     {
         $rules = parent::rules();
-        $rules = array_merge($rules, [
+
+        return array_merge($rules, [
             [['baseUrl'], 'default', 'value' => ''],
             [['baseUrl'], 'string'],
         ]);
-
-        return $rules;
     }
 }
