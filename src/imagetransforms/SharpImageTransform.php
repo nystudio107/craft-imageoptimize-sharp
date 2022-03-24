@@ -53,7 +53,7 @@ class SharpImageTransform extends ImageTransform
     /**
      * @var string
      */
-    public string $baseUrl;
+    public string $baseUrl = '';
 
     // Public Properties
     // =========================================================================
