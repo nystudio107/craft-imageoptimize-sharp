@@ -1,5 +1,11 @@
 # ImageOptimize Sharp Image Transform Changelog
 
+## 1.0.10 - 2022.03.29
+
+### Changed
+
+* Tighten the `composer.json` `require` constraints to limit it to the Craft 3 version of ImageOptimize
+
 ## 1.0.9 - 2022.02.24
 
 ### Changed
