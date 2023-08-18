@@ -1,5 +1,9 @@
 # ImageOptimize Sharp Image Transform Changelog
 
+## 4.0.1 - UNRELEASED
+### Fixed
+* Fixed an issue with corrupted images throwing an exception
+
 ## 4.0.0 - 2022.05.25
 ### Added
 * Initial Craft CMS 4 release
