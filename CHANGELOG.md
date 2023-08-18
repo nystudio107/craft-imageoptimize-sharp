@@ -1,5 +1,10 @@
 # ImageOptimize Sharp Image Transform Changelog
 
+
+## 1.0.11 - UNRELEASED
+### Fixed
+* Fixed an issue with corrupted images throwing an exception ([#6](https://github.com/nystudio107/craft-imageoptimize-sharp/issues/6))
+
 ## 1.0.10 - 2022.03.29
 
 ### Changed
