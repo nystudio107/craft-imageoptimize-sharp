@@ -1,5 +1,10 @@
 # ImageOptimize Sharp Image Transform Changelog
 
+
+## 1.0.11 - UNRELEASED
+### Fixed
+* Fixed an issue with corrupted images throwing an exception
+
 ## 1.0.10 - 2022.03.29
 
 ### Changed
