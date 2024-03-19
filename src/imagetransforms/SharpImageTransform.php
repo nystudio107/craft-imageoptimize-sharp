@@ -157,7 +157,7 @@ class SharpImageTransform extends ImageTransform
                 } else {
                     $yPos = 'bottom';
                 }
-                $position = $xPos . '-' . $yPos;
+                $position = $yPos . '-' . $xPos;
             }
             if (!empty($position) && preg_match('/(top|center|bottom)-(left|center|right)/', $position)) {
                 $positions = explode('-', $position);
