@@ -159,9 +159,11 @@ class SharpImageTransform extends ImageTransform
                 }
                 $position = $xPos . '-' . $yPos;
             }
-            if (!empty($position) && preg_match('/(left|center|right)-(top|center|bottom)/', $position)) {
+            if (!empty($position) && preg_match('/(top|center|bottom)-(left|center|right)/', $position)) {
                 $positions = explode('-', $position);
                 $positions = array_diff($positions, ['center']);
+                // Reverse the coordinates because Sharp requires them in the "X Y" format
+                $positions = array_reverse($positions);
                 if (!empty($positions) && $position !== 'center-center') {
                     $edits['resize']['position'] = implode(' ', $positions);
                 }
