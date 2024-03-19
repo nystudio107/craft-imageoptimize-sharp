@@ -141,7 +141,7 @@ class SharpImageTransform extends ImageTransform
             }
             // Handle the focal point
             $position = $transform->position;
-            $focalPoint = $asset->getFocalPoint();
+            $focalPoint = $asset->getHasFocalPoint() ? $asset->getFocalPoint() : false;
             if (!empty($focalPoint)) {
                 if ($focalPoint['x'] < 0.33) {
                     $xPos = 'left';
