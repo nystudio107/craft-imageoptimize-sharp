@@ -1,5 +1,8 @@
 # ImageOptimize Sharp Image Transform Changelog
 
+## 1.0.12 - 2024.03.25
+### Fixed
+* Fixed an issue with focal points not working as expected ([#9](https://github.com/nystudio107/craft-imageoptimize-sharp/pull/9))
 
 ## 1.0.11 - 2023.08.18
 ### Fixed
