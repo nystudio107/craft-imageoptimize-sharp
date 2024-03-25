@@ -10,18 +10,16 @@
 
 namespace nystudio107\imageoptimizesharp\imagetransforms;
 
+use Craft;
+use craft\awss3\Volume as AwsVolume;
+use craft\elements\Asset;
 use craft\errors\AssetLogicException;
+use craft\helpers\Json;
+use craft\models\AssetTransform;
 use nystudio107\imageoptimize\ImageOptimize;
 use nystudio107\imageoptimize\imagetransforms\ImageTransform;
-
-use Craft;
-use craft\elements\Asset;
-use craft\models\AssetTransform;
-use craft\helpers\Json;
-
-use craft\awss3\Volume as AwsVolume;
-
 use yii\base\InvalidConfigException;
+use function class_exists;
 
 /**
  * @author    nystudio107
@@ -44,12 +42,19 @@ class SharpImageTransform extends ImageTransform
     ];
 
     const TRANSFORM_RESIZE_ATTRIBUTES_MAP = [
-        'width'   => 'width',
-        'height'  => 'height',
+        'width' => 'width',
+        'height' => 'height',
         'mode' => 'fit',
     ];
 
     // Static Methods
+    // =========================================================================
+    /**
+     * @var string
+     */
+    public $baseUrl;
+
+    // Public Properties
     // =========================================================================
 
     /**
@@ -60,23 +65,15 @@ class SharpImageTransform extends ImageTransform
         return Craft::t('image-optimize', 'Sharp');
     }
 
-    // Public Properties
-    // =========================================================================
-
-    /**
-     * @var string
-     */
-    public $baseUrl;
-
     // Public Methods
     // =========================================================================
 
     /**
-     * @param Asset               $asset
+     * @param Asset $asset
      * @param AssetTransform|null $transform
      *
      * @return string|null
-     * @throws \yii\base\InvalidConfigException
+     * @throws InvalidConfigException
      */
     public function getTransformUrl(Asset $asset, $transform)
     {
@@ -150,7 +147,7 @@ class SharpImageTransform extends ImageTransform
             }
             // Handle the focal point
             $position = $transform->position;
-            $focalPoint = $asset->getFocalPoint();
+            $focalPoint = $asset->getHasFocalPoint() ? $asset->getFocalPoint() : false;
             if (!empty($focalPoint)) {
                 if ($focalPoint['x'] < 0.33) {
                     $xPos = 'left';
@@ -166,15 +163,15 @@ class SharpImageTransform extends ImageTransform
                 } else {
                     $yPos = 'bottom';
                 }
-                $position = $xPos.'-'.$yPos;
+                $position = $yPos . '-' . $xPos;
             }
-            if (!empty($position)) {
-                if (preg_match('/(left|center|right)-(top|center|bottom)/', $position)) {
-                    $positions = explode('-', $position);
-                    $positions = array_diff($positions, ['center']);
-                    if (!empty($positions) && $position !== 'center-center') {
-                        $edits['resize']['position'] = implode(' ', $positions);
-                    }
+            if (!empty($position) && preg_match('/(top|center|bottom)-(left|center|right)/', $position)) {
+                $positions = explode('-', $position);
+                $positions = array_diff($positions, ['center']);
+                // Reverse the coordinates because Sharp requires them in the "X Y" format
+                $positions = array_reverse($positions);
+                if (!empty($positions) && $position !== 'center-center') {
+                    $edits['resize']['position'] = implode(' ', $positions);
                 }
             }
             // Map the mode param
@@ -184,7 +181,7 @@ class SharpImageTransform extends ImageTransform
             if ($settings->autoSharpenScaledImages && $asset->getWidth() && $asset->getHeight()) {
                 // See if the image has been scaled >= 50%
                 $widthScale = (int)((($transform->width ?? $asset->getWidth()) / $asset->getWidth()) * 100);
-                $heightScale =  (int)((($transform->height ?? $asset->getHeight()) / $asset->getHeight()) * 100);
+                $heightScale = (int)((($transform->height ?? $asset->getHeight()) / $asset->getHeight()) * 100);
                 if (($widthScale >= (int)$settings->sharpenScaledImagePercentage) || ($heightScale >= (int)$settings->sharpenScaledImagePercentage)) {
                     $edits['sharpen'] = true;
                 }
@@ -202,9 +199,9 @@ class SharpImageTransform extends ImageTransform
             | JSON_UNESCAPED_UNICODE
             | JSON_NUMERIC_CHECK
         );
-        $url = rtrim($baseUrl, '/').'/'.base64_encode($strConfig);
+        $url = rtrim($baseUrl, '/') . '/' . base64_encode($strConfig);
         Craft::debug(
-            'Sharp transform created for: '.$assetUri.' - Config: '.print_r($strConfig, true).' - URL: '.$url,
+            'Sharp transform created for: ' . $assetUri . ' - Config: ' . print_r($strConfig, true) . ' - URL: ' . $url,
             __METHOD__
         );
 
@@ -212,8 +209,8 @@ class SharpImageTransform extends ImageTransform
     }
 
     /**
-     * @param string              $url
-     * @param Asset               $asset
+     * @param string $url
+     * @param Asset $asset
      * @param AssetTransform|null $transform
      *
      * @return string
@@ -223,7 +220,7 @@ class SharpImageTransform extends ImageTransform
         if ($transform === null) {
             $transform = new AssetTransform();
         }
-        $transform->format='webp';
+        $transform->format = 'webp';
         try {
             $webpUrl = $this->getTransformUrl($asset, $transform);
         } catch (InvalidConfigException $e) {
@@ -257,7 +254,7 @@ class SharpImageTransform extends ImageTransform
      * @param Asset $asset
      *
      * @return mixed
-     * @throws \yii\base\InvalidConfigException
+     * @throws InvalidConfigException
      */
     public function getAssetUri(Asset $asset)
     {
@@ -271,7 +268,7 @@ class SharpImageTransform extends ImageTransform
     {
         return Craft::$app->getView()->renderTemplate('sharp-image-transform/settings/image-transforms/sharp.twig', [
             'imageTransform' => $this,
-            'awsS3Installed'    => \class_exists(AwsVolume::class),
+            'awsS3Installed' => class_exists(AwsVolume::class),
         ]);
     }
 
