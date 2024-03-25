@@ -141,7 +141,7 @@ class SharpImageTransform extends ImageTransform
             }
             // Handle the focal point
             $position = $transform->position;
-            $focalPoint = $asset->getFocalPoint();
+            $focalPoint = $asset->getHasFocalPoint() ? $asset->getFocalPoint() : false;
             if (!empty($focalPoint)) {
                 if ($focalPoint['x'] < 0.33) {
                     $xPos = 'left';
@@ -157,11 +157,13 @@ class SharpImageTransform extends ImageTransform
                 } else {
                     $yPos = 'bottom';
                 }
-                $position = $xPos . '-' . $yPos;
+                $position = $yPos . '-' . $xPos;
             }
-            if (!empty($position) && preg_match('/(left|center|right)-(top|center|bottom)/', $position)) {
+            if (!empty($position) && preg_match('/(top|center|bottom)-(left|center|right)/', $position)) {
                 $positions = explode('-', $position);
                 $positions = array_diff($positions, ['center']);
+                // Reverse the coordinates because Sharp requires them in the "X Y" format
+                $positions = array_reverse($positions);
                 if (!empty($positions) && $position !== 'center-center') {
                     $edits['resize']['position'] = implode(' ', $positions);
                 }
