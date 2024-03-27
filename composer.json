@@ -2,7 +2,7 @@
   "name": "nystudio107/craft-imageoptimize-sharp",
   "description": "Provides an Sharp image transform type for the ImageOptimize plugin.",
   "type": "image-transform",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "keywords": [
     "craftcms",
     "sharp",
@@ -24,6 +24,24 @@
   "prefer-stable": true,
   "require": {
     "nystudio107/craft-imageoptimize": "^1.6.33"
+  },
+  "require-dev": {
+    "craftcms/ecs": "dev-main",
+    "craftcms/phpstan": "dev-main",
+    "craftcms/rector": "dev-main"
+  },
+  "scripts": {
+    "phpstan": "phpstan --ansi --memory-limit=1G",
+    "check-cs": "ecs check --ansi",
+    "fix-cs": "ecs check --fix --ansi"
+  },
+  "config": {
+    "allow-plugins": {
+      "craftcms/plugin-installer": true,
+      "yiisoft/yii2-composer": true
+    },
+    "optimize-autoloader": true,
+    "sort-packages": true
   },
   "autoload": {
     "psr-4": {
