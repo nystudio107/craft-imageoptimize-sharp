@@ -18,6 +18,7 @@ use craft\helpers\Json;
 use craft\models\AssetTransform;
 use nystudio107\imageoptimize\ImageOptimize;
 use nystudio107\imageoptimize\imagetransforms\ImageTransform;
+use nystudio107\imageoptimize\models\Settings;
 use yii\base\InvalidConfigException;
 use function class_exists;
 
@@ -52,7 +53,7 @@ class SharpImageTransform extends ImageTransform
     /**
      * @var string
      */
-    public $baseUrl;
+    public $baseUrl = '';
 
     // Public Properties
     // =========================================================================
@@ -77,12 +78,12 @@ class SharpImageTransform extends ImageTransform
      */
     public function getTransformUrl(Asset $asset, $transform)
     {
-        $url = null;
         $config = [];
+        /** @var Settings $settings */
         $settings = ImageOptimize::$plugin->getSettings();
 
         // Get the instance settings
-        $baseUrl = $this->baseUrl ?? '';
+        $baseUrl = $this->baseUrl;
         if (ImageOptimize::$craft31) {
             $baseUrl = Craft::parseEnv($baseUrl);
         }
