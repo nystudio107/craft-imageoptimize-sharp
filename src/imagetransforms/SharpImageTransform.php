@@ -166,7 +166,7 @@ class SharpImageTransform extends ImageTransform
                 }
                 $position = $yPos . '-' . $xPos;
             }
-            if (!empty($position) && preg_match('/(top|center|bottom)-(left|center|right)/', $position)) {
+            if (preg_match('/(top|center|bottom)-(left|center|right)/', $position)) {
                 $positions = explode('-', $position);
                 $positions = array_diff($positions, ['center']);
                 // Reverse the coordinates because Sharp requires them in the "X Y" format
